@@ -1,15 +1,14 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sqlite3
 from DBUtils.PooledDB import PooledDB
 import threading
 import functools
 import setting
 import os
+import sqlite3
 
 
-thread_local_data = threading.local()
 df_pool = PooledDB(
         sqlite3,
         mincached=1,
@@ -19,6 +18,7 @@ df_pool = PooledDB(
         database=os.path.join(setting.DATA_FOLDER, "data.db"),
         check_same_thread=False
     )
+thread_local_data = threading.local()
 
 
 def transactional(pool=None, force_commit: bool = False):
