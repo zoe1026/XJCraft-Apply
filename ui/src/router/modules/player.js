@@ -6,16 +6,16 @@ const playerRouter = {
   redirect: 'noRedirect',
   name: 'Player',
   meta: {
-    title: '系统配置',
-    roles: ['ADMIN']
+    title: '玩家申请',
+    roles: ['OP']
   },
   children: [
     {
-      path: 'demo',
-      component: () => import('@/views/player/demo'),
-      name: 'demo',
+      path: 'req-list',
+      component: () => import('@/views/player/req-list'),
+      name: '玩家申请列表',
       meta: {
-        title: 'demo'
+        title: '玩家申请列表'
       }
     }
   ]

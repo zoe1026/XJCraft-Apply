@@ -6,3 +6,4 @@ logs/
 local/
 *.local
 *.local.*
+data/
