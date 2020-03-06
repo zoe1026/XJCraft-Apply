@@ -1,7 +1,7 @@
 import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
-import md5 from 'js-md5'
+// import md5 from 'js-md5'
 
 const state = {
   token: getToken(),
@@ -31,17 +31,12 @@ const mutations = {
 
 const actions = {
   // user login
-  login({ commit, dispatch }, userInfo) {
+  login({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: md5(password) }).then(response => {
-        const { data } = response
-        const { type } = data
-
-        dispatch('server/init', null, { root: true })
-        dispatch('sys/init', null, { root: true })
-        commit('SET_TOKEN', type + '-token')
-        setToken(type + '-token')
+      login({ username: username.trim(), password: password }).then(response => {
+        commit('SET_TOKEN', 'OP-token')
+        setToken('OP-token')
         resolve()
       }).catch(error => {
         reject(error)
@@ -54,39 +49,17 @@ const actions = {
     return new Promise((resolve, reject) => {
       getInfo().then(response => {
         const { data } = response
-
-        switch (data.type) {
-          case 'ADMIN':
-            data.roles = ['ADMIN', 'OPERATION', 'MANUFACTURING_LV1', 'MANUFACTURING_LV2', 'MANUFACTURING_LV3']
-            break
-          case 'OPERATION':
-            data.roles = ['OPERATION']
-            break
-          case 'MANUFACTURING_LV1':
-            data.roles = ['MANUFACTURING_LV1']
-            break
-          case 'MANUFACTURING_LV2':
-            data.roles = ['MANUFACTURING_LV1', 'MANUFACTURING_LV2']
-            break
-          case 'MANUFACTURING_LV3':
-            data.roles = ['MANUFACTURING_LV1', 'MANUFACTURING_LV2', 'MANUFACTURING_LV3']
-            break
-        }
+        const roles = ['OP']
 
         if (!data) {
           reject('Verification failed, please Login again.')
         }
 
-        // roles must be a non-empty array
-        if (!data.roles || data.roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
-        }
-
-        commit('SET_ROLES', data.roles)
-        commit('SET_NAME', 'User')
+        commit('SET_ROLES', roles)
+        commit('SET_NAME', data)
         commit('SET_AVATAR', 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif')
-        commit('SET_INTRODUCTION', 'A User.')
-        resolve(data)
+        commit('SET_INTRODUCTION', 'A OP.')
+        resolve({ roles })
       }).catch(error => {
         reject(error)
       })

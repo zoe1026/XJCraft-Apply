@@ -6,7 +6,6 @@ import time
 from flask import request, session
 import functools
 import re
-from app import fail
 
 
 def start_new_daemon_thread(target, name: str):
@@ -51,6 +50,22 @@ def get_ip(header_name: str) -> str:
 def get_real_ip() -> str:
     """获取远端的真实 IP"""
     return request.remote_addr
+
+
+def fail(msg: str, code: int = -1) -> dict:
+    return {
+        "message": msg,
+        "code": code,
+        "data": None
+    }
+
+
+def success(data=None, code: int = 0) -> dict:
+    return {
+        "message": None,
+        "code": code,
+        "data": data
+    }
 
 
 # ===== valid =====

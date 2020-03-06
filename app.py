@@ -5,7 +5,7 @@ from sqlite3 import Cursor
 
 from flask import Flask, session, request
 from db import transactional
-from util import valid_json, valid_not_blank, valid_regexp, get_ip, auth
+from util import valid_json, valid_not_blank, valid_regexp, get_ip, auth, success, fail
 import worker
 import setting
 import os
@@ -30,22 +30,6 @@ class ApplyStatus(Enum):
     NEW = 1      # 待审核
     ACCEPT = 2   # 已通过
     DENY = 3     # 已拒绝
-
-
-def fail(msg: str, code: int = -1) -> dict:
-    return {
-        "message": msg,
-        "code": code,
-        "data": None
-    }
-
-
-def success(data=None, code: int = 0) -> dict:
-    return {
-        "message": None,
-        "code": code,
-        "data": data
-    }
 
 
 @app.route("/api/login/login", methods=["POST"])
@@ -76,14 +60,23 @@ def login(cur: Cursor = None) -> dict:
 @auth
 @app.route("/api/login/logout", methods=["POST"])
 def logout() -> dict:
+    """
+    OP 退出登录
+    """
     session.pop("username", None)
     return success()
 
 
 @auth
-@app.route("/api/user/info", methods=["POST"])
-def logout() -> dict:
+@app.route("/api/user/info", methods=["GET"])
+def user_info() -> dict:
+    """
+    OP 查询用户信息
+    """
     return success(session["username"])
+
+
+# TODO list、accept、deny
 
 
 @app.route("/api/player/req", methods=["POST"])
