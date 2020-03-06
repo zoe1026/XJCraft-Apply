@@ -8,6 +8,8 @@ import os
 DATA_FOLDER = "data"
 # HTTP Port
 HTTP_PORT = 5000
+# HTTP 密钥
+HTTP_SECRET = "xjcraft"
 
 
 def init():

@@ -3,9 +3,10 @@
 
 from threading import Thread
 import time
-from flask import request
+from flask import request, session
 import functools
 import re
+from app import fail
 
 
 def start_new_daemon_thread(target, name: str):
@@ -53,6 +54,7 @@ def get_real_ip() -> str:
 
 
 # ===== valid =====
+
 
 class ValidException(Exception):
     pass
@@ -108,3 +110,22 @@ def valid_regexp(regexp):
         """
         return name not in json or reg.match(str(json[name]))
     return valid_regexp0
+
+
+# ===== login =====
+
+
+class RequireAuthException(Exception):
+    pass
+
+
+def auth(fn):
+    """
+    要求登录才可以访问的接口
+    """
+    def wrap(*args, **kw):
+        if "username" in session:
+            return fn(*args, **kw)
+        else:
+            raise RequireAuthException()
+    return wrap

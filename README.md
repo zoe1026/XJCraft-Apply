@@ -102,6 +102,8 @@ server {
 server {
     listen       8843;
 
+    root /var/www/xjapply;  # 前端打包结果的存放路径
+
     location / {
         try_files $uri $uri/ /index.html;
     }

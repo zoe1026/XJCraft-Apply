@@ -3,9 +3,9 @@
 from datetime import datetime
 from sqlite3 import Cursor
 
-from flask import Flask, jsonify, Response, request
+from flask import Flask, session, request
 from db import transactional
-from util import valid_json, valid_not_blank, valid_regexp, get_ip
+from util import valid_json, valid_not_blank, valid_regexp, get_ip, auth
 import worker
 import setting
 import os
@@ -15,6 +15,7 @@ from enum import Enum, unique
 
 
 app = Flask(__name__)
+app.secret_key = setting.HTTP_SECRET
 
 
 @unique
@@ -45,6 +46,44 @@ def success(data=None, code: int = 0) -> dict:
         "code": code,
         "data": data
     }
+
+
+@app.route("/api/login/login", methods=["POST"])
+@valid_json("username", [valid_not_blank, valid_regexp(r"[a-zA-Z0-9_]{3,16}")])
+@valid_json("password", [valid_not_blank, valid_regexp(r"[a-zA-Z0-9]{6,50}")])
+@transactional
+def login(cur: Cursor = None) -> dict:
+    """
+    OP 登录
+    """
+    json_data = request.get_json()
+
+    cur.execute("""
+      SELECT
+        username
+      FROM apply_op
+      WHERE username = ?
+      AND password = ?
+    """, (json_data["username"], json_data["password"]))
+    username = cur.fetchone()
+    if not username:
+        return fail("用户名或密码错误")
+    else:
+        session["username"] = username[0]
+        return success()
+
+
+@auth
+@app.route("/api/login/logout", methods=["POST"])
+def logout() -> dict:
+    session.pop("username", None)
+    return success()
+
+
+@auth
+@app.route("/api/user/info", methods=["POST"])
+def logout() -> dict:
+    return success(session["username"])
 
 
 @app.route("/api/player/req", methods=["POST"])
