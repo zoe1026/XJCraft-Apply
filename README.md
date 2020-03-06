@@ -50,4 +50,20 @@
    构建结果会生成在 dist 目录中
 
 ### 反代(Nginx 为栗子
+#### 开发参考配置
+```
+server {
+    listen       8843;
+
+    location / {
+        proxy_pass http://127.0.0.1:9527;
+    }
+
+    location /api {
+        proxy_pass http://127.0.0.1:5000;
+    }
+}
+```
+
+#### 产品参考配置
 > TODO

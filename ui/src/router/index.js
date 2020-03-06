@@ -53,6 +53,11 @@ export const constantRoutes = [
     hidden: true
   },
   {
+    path: '/req',
+    component: () => import('@/views/req/index'),
+    hidden: true
+  },
+  {
     path: '/auth-redirect',
     component: () => import('@/views/login/auth-redirect'),
     hidden: true

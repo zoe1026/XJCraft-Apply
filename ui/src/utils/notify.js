@@ -1,6 +1,6 @@
 import { Message } from 'element-ui'
 
-export function notifySuccess(msg, { timeout = 4000 } = {}) {
+export function notifySuccess(msg, { timeout = 5000 } = {}) {
   Message({
     message: msg,
     type: 'success',
@@ -8,7 +8,7 @@ export function notifySuccess(msg, { timeout = 4000 } = {}) {
   })
 }
 
-export function notifyWarn(msg, { timeout = 4000 } = {}) {
+export function notifyWarn(msg, { timeout = 5000 } = {}) {
   Message({
     message: msg,
     type: 'warning',
