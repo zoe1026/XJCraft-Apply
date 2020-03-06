@@ -1,7 +1,7 @@
 {
   "name": "xjcraft-apply",
   "version": "1.0.0",
-  "license": "LGPLv3",
+  "license": "LGPL-3.0-or-later",
   "scripts": {
     "dev": "vue-cli-service serve",
     "build:prod": "vue-cli-service build",
@@ -12,17 +12,6 @@
     "test:ci": "npm run lint && npm run test:unit",
     "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml",
     "new": "plop"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "src/**/*.{js,vue}": [
-      "eslint --fix",
-      "git add"
-    ]
   },
   "dependencies": {
     "axios": "0.19.2",
