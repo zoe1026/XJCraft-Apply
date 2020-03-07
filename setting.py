@@ -4,6 +4,13 @@
 import os
 
 
+# Database
+MYSQL_HOST = "127.0.0.1"
+MYSQL_PORT = 3306
+MYSQL_DBNAME = "mc"
+MYSQL_USER = "root"
+MYSQL_PASSWD = "123456"
+
 # 数据存放目录
 DATA_FOLDER = "data"
 # HTTP Port

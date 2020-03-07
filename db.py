@@ -5,7 +5,6 @@ from DBUtils.PooledDB import PooledDB
 import threading
 import functools
 import setting
-import os
 import pymysql
 
 
@@ -14,11 +13,11 @@ df_pool = PooledDB(
         mincached=1,
         maxcached=10,
         blocking=True,
-        host="127.0.0.1",
-        port=3306,
-        db="mc",
-        user="root",
-        passwd="123456",
+        host=setting.MYSQL_HOST,
+        port=setting.MYSQL_PORT,
+        db=setting.MYSQL_DBNAME,
+        user=setting.MYSQL_USER,
+        passwd=setting.MYSQL_PASSWD,
         charset="utf8"
     )
 thread_local_data = threading.local()

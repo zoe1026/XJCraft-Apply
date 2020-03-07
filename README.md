@@ -13,7 +13,7 @@
     ```
 3. 执行下面的代码启动
     ```shell script
-    ./app.py
+    python3 app.py
     ```
 
 ### 前端
