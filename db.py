@@ -65,24 +65,24 @@ def transactional(pool=None, force_commit: bool = False):
 @transactional
 def init(cur=None):
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS "apply_op" (
-          "username" VARCHAR(16)  NOT NULL PRIMARY KEY,
-          "password" VARCHAR(255) NOT NULL
+        CREATE TABLE IF NOT EXISTS apply_op (
+          username VARCHAR(16)  NOT NULL PRIMARY KEY,
+          password VARCHAR(255) NOT NULL
         );
         """)
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS "apply_player" (
-          "player_name"     VARCHAR(16)  NOT NULL PRIMARY KEY,
-          "password"        VARCHAR(255) NOT NULL,
-          "req_time"        DATETIME     NOT NULL,
-          "apply_time"      DATETIME,
-          "apply_op"        VARCHAR(16),
-          "status"          VARCHAR(16)  NOT NULL,
-          "type"            VARCHAR(16)  NOT NULL,
-          "ip"              VARCHAR(15)  NOT NULL,
-          "qq"              VARCHAR(11)  NOT NULL,
-          "old_player_name" VARCHAR(16),
-          "op_name"         VARCHAR(16)
+        CREATE TABLE IF NOT EXISTS apply_player (
+          player_name     VARCHAR(16)  NOT NULL PRIMARY KEY,
+          password        VARCHAR(255) NOT NULL,
+          req_time        DATETIME     NOT NULL,
+          apply_time      DATETIME,
+          apply_op        VARCHAR(16),
+          status          VARCHAR(16)  NOT NULL,
+          type            VARCHAR(16)  NOT NULL,
+          ip              VARCHAR(15)  NOT NULL,
+          qq              VARCHAR(11)  NOT NULL,
+          old_player_name VARCHAR(16),
+          op_name         VARCHAR(16)
         );
     """)
 

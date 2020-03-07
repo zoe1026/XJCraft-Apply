@@ -16,7 +16,6 @@ from enum import Enum, unique
 
 
 app = Flask(__name__)
-print(__name__)
 app.secret_key = setting.HTTP_SECRET
 
 
