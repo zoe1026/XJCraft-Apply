@@ -47,8 +47,8 @@ def login(cur: Cursor = None) -> dict:
       SELECT
         username
       FROM apply_op
-      WHERE username = ?
-      AND password = ?
+      WHERE username = %s
+      AND password = %s
     """, (json_data["username"], json_data["password"]))
     username = cur.fetchone()
     if not username:
@@ -59,7 +59,7 @@ def login(cur: Cursor = None) -> dict:
 
 
 @auth
-@app.route("/api/login/logout", methods=["POST"])
+@app.route("/api/login/logout", methods=["GET"])
 def logout() -> dict:
     """
     OP 退出登录
@@ -101,7 +101,7 @@ def req_list(cur: Cursor = None) -> dict:
         *
       FROM apply_player
       ORDER BY req_time DESC
-      LIMIT ? OFFSET ?
+      LIMIT %d OFFSET %d
     """, (page_size, (page - 1) * page_size))
     res = cur.fetchall()
     data = [{
@@ -141,7 +141,7 @@ def apply(cur: Cursor = None) -> dict:
       SELECT
         status
       FROM apply_player
-      WHERE player_name = ?
+      WHERE player_name = %s
     """, (player_name, ))
     cur_status = cur.fetchone()
     if not cur_status:
@@ -152,10 +152,10 @@ def apply(cur: Cursor = None) -> dict:
     # 更新结果
     cur.execute("""
       UPDATE apply_player SET
-      status = ?,
-      apply_time = ?,
-      apply_op = ?
-      WHERE player_name = ?
+      status = %s,
+      apply_time = %s,
+      apply_op = %s
+      WHERE player_name = %s
     """, (result.name, datetime.now(), session["username"], player_name))
 
     # TODO 自动创建账号
@@ -180,7 +180,7 @@ def req(cur: Cursor = None) -> dict:
       SELECT
         password, qq, status
       FROM apply_player
-      WHERE player_name = ?
+      WHERE player_name = %s
     """, (json_data["playerName"], ))
     player = cur.fetchone()
     if player:
@@ -200,7 +200,7 @@ def req(cur: Cursor = None) -> dict:
       SELECT
         player_name
       FROM apply_player
-      WHERE qq = ?
+      WHERE qq = %s
     """, (json_data["qq"], ))
     if cur.fetchone():
         return fail("QQ 号已存在")
@@ -227,7 +227,7 @@ def req(cur: Cursor = None) -> dict:
           SELECT
             COUNT(*)
           FROM apply_player
-          WHERE ip = ?
+          WHERE ip = %s
           AND status = 'NEW'
         """, (ip, ))
         ip_count = cur.fetchone()
@@ -238,7 +238,7 @@ def req(cur: Cursor = None) -> dict:
           SELECT
             req_time
           FROM apply_player
-          WHERE ip = ?
+          WHERE ip = %s
           AND status = 'NEW'
           ORDER BY req_time DESC
           LIMIT 1
@@ -250,7 +250,7 @@ def req(cur: Cursor = None) -> dict:
 
     # 插 DB
     cur.execute("""
-        INSERT INTO apply_player VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        INSERT INTO apply_player VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     """, (
         json_data["playerName"],
         json_data["password"],

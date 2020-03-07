@@ -6,17 +6,20 @@ import threading
 import functools
 import setting
 import os
-import sqlite3
+import pymysql
 
 
 df_pool = PooledDB(
-        sqlite3,
+        pymysql,
         mincached=1,
-        maxcached=1,
-        maxconnections=1,  # 注意，SQLite 只允许使用一个线程，其它数据库可以多线程
+        maxcached=10,
         blocking=True,
-        database=os.path.join(setting.DATA_FOLDER, "data.db"),
-        check_same_thread=False
+        host="127.0.0.1",
+        port=3306,
+        db="mc",
+        user="root",
+        passwd="123456",
+        charset="utf8"
     )
 thread_local_data = threading.local()
 

@@ -9,36 +9,11 @@
     ```shell script
     pip3 install flask
     pip3 install DBUtils
+    pip3 install pymysql
     ```
 3. 执行下面的代码启动
     ```shell script
     ./app.py
-    ```
-
-#### 从 Sqlite 切换至 MySQL
-1. 安装`mysql`驱动
-
-    ```shell script
-    pip3 install pymysql
-    ```
-2. 调整`db.py`开头的代码，改为`mysql`的配置，参考如下：
-
-    ```python
-    import pymysql
-
-
-    df_pool = PooledDB(
-        pymysql,
-        mincached=1,
-        maxcached=10,
-        blocking=True,
-        host="127.0.0.1",
-        port=3306,
-        db="mc",
-        user="root",
-        passwd="123456",
-        charset="utf8"
-    )
     ```
 
 ### 前端
