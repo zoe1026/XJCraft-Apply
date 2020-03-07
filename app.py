@@ -5,16 +5,18 @@ from sqlite3 import Cursor
 
 from flask import Flask, session, request
 from db import transactional
-from util import valid_json, valid_not_blank, valid_regexp, get_ip, auth, success, fail
+from util import valid_json, valid_not_blank, valid_regexp, get_ip, auth, success, fail, pager_data
 import worker
 import setting
 import os
 import logging
 import time
+import math
 from enum import Enum, unique
 
 
 app = Flask(__name__)
+print(__name__)
 app.secret_key = setting.HTTP_SECRET
 
 
@@ -76,7 +78,90 @@ def user_info() -> dict:
     return success(session["username"])
 
 
-# TODO list、accept、deny
+@auth
+@app.route("/api/req/list", methods=["GET"])
+@transactional
+def req_list(cur: Cursor = None) -> dict:
+    page: int = int(request.args["page"])
+    page_size: int = int(request.args["pageSize"] if request.args["pageSize"] else "10")
+
+    """
+    查询玩家申请列表
+    """
+    cur.execute("""
+      SELECT
+        COUNT(*)
+      FROM apply_player
+    """)
+    count: int = cur.fetchone()[0]
+
+    page = max(1, min(page, math.ceil(count / page_size)))
+
+    cur.execute("""
+      SELECT
+        *
+      FROM apply_player
+      ORDER BY req_time DESC
+      LIMIT ? OFFSET ?
+    """, (page_size, (page - 1) * page_size))
+    res = cur.fetchall()
+    data = [{
+        "playerName": r[0],
+        "password": r[1],  # TODO 自动创建账号后不再响应给前端
+        "reqTime": r[2],
+        "applyTime": r[3],
+        "applyOP": r[4],
+        "status": r[5],
+        "type": r[6],
+        "ip": r[7],
+        "qq": r[8],
+        "oldPlayerName": r[9],
+        "opName": r[10]
+    } for r in res]
+
+    return success(pager_data(page, count, data, page_size))
+
+
+@auth
+@app.route("/api/req/apply", methods=["POST"])
+@valid_json("playerName", [valid_not_blank, valid_regexp(r"[a-zA-Z0-9_]{3,16}")])
+@transactional
+def apply(cur: Cursor = None) -> dict:
+    """
+    OP 处理玩家申请
+    """
+    json_data = request.get_json()
+    player_name = json_data["playerName"]
+    result = ApplyStatus.__members__[json_data["result"]]
+
+    if not result or result is ApplyStatus.NEW:
+        return fail("状态错误")
+
+    # 查出玩家
+    cur.execute("""
+      SELECT
+        status
+      FROM apply_player
+      WHERE player_name = ?
+    """, (player_name, ))
+    cur_status = cur.fetchone()
+    if not cur_status:
+        return fail("未找到此玩家")
+    elif cur_status[0] != ApplyStatus.NEW.name:
+        return fail("此玩家已审核过")
+
+    # 更新结果
+    cur.execute("""
+      UPDATE apply_player SET
+      status = ?,
+      apply_time = ?,
+      apply_op = ?
+      WHERE player_name = ?
+    """, (result.name, datetime.now(), session["username"], player_name))
+
+    # TODO 自动创建账号
+
+    return success()
 
 
 @app.route("/api/player/req", methods=["POST"])
@@ -138,30 +223,31 @@ def req(cur: Cursor = None) -> dict:
                 op_name = op_name[:-3]
 
     ip = get_ip("X-Forwarded-For")
-    cur.execute("""
-      SELECT
-        COUNT(*)
-      FROM apply_player
-      WHERE ip = ?
-      AND status = 'NEW'
-    """, (ip, ))
-    ip_count = cur.fetchone()
-    if ip_count[0] > 3:
-        return fail("同一个 IP 最多只能有三个申请")
-        pass
-    cur.execute("""
-      SELECT
-        req_time
-      FROM apply_player
-      WHERE ip = ?
-      AND status = 'NEW'
-      ORDER BY req_time DESC
-      LIMIT 1
-    """, (ip, ))
-    last_time = cur.fetchone()
-    if last_time and (datetime.now() - datetime.strptime(last_time[0], "%Y-%m-%d %H:%M:%S.%f")).seconds < 3600:
-        return fail("同一个 IP 每小时只能申请一次")
-        pass
+    if ip != '127.0.0.1':
+        cur.execute("""
+          SELECT
+            COUNT(*)
+          FROM apply_player
+          WHERE ip = ?
+          AND status = 'NEW'
+        """, (ip, ))
+        ip_count = cur.fetchone()
+        if ip_count[0] > 3:
+            return fail("同一个 IP 最多只能有三个申请")
+            pass
+        cur.execute("""
+          SELECT
+            req_time
+          FROM apply_player
+          WHERE ip = ?
+          AND status = 'NEW'
+          ORDER BY req_time DESC
+          LIMIT 1
+        """, (ip, ))
+        last_time = cur.fetchone()
+        if last_time and (datetime.now() - datetime.strptime(last_time[0], "%Y-%m-%d %H:%M:%S.%f")).seconds < 3600:
+            return fail("同一个 IP 每小时只能申请一次")
+            pass
 
     # 插 DB
     cur.execute("""
@@ -183,15 +269,15 @@ def req(cur: Cursor = None) -> dict:
     return success()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # logger
-    if not os.path.exists('logs'):
-        os.mkdir('logs')
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
     logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s [%(levelname)s]: %(message)s',
-                        datefmt='%y-%m-%d %H:%M:%S',
-                        filename='logs/%s.log' % time.strftime('%y-%m-%d_%H_%M_%S'),
-                        filemode='w')
+                        format="%(asctime)s [%(levelname)s]: %(message)s",
+                        datefmt="%y-%m-%d %H:%M:%S",
+                        filename="logs/%s.log" % time.strftime("%y-%m-%d_%H_%M_%S"),
+                        filemode="w")
     sh = logging.StreamHandler()
     sh.setFormatter(logging.getLogger().handlers[0].formatter)
     logging.getLogger().addHandler(sh)

@@ -68,6 +68,15 @@ def success(data=None, code: int = 0) -> dict:
     }
 
 
+def pager_data(page: int, total_count: int, data: list, page_size: int = 10) -> dict:
+    return {
+        "page": page,
+        "totalRow": total_count,
+        "list": data,
+        "pageSize": page_size
+    }
+
+
 # ===== valid =====
 
 
@@ -139,6 +148,7 @@ def auth(fn):
     要求登录才可以访问的接口
     """
     def wrap(*args, **kw):
+        # TODO Session 无效？
         if "username" in session:
             return fn(*args, **kw)
         else:
