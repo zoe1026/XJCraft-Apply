@@ -17,26 +17,30 @@
           el-button(:disabled="step0.step >= 1 && step0.step < step0.waitTime", @click="clickStep0") {{ step0.btnName }}
 
       div.paddintop(v-else-if="step === 1", style={ width: '600px', margin: '0 auto', color: '#eee' })
-        div(v-for="(qa, idx) in step1.qa", :key="idx")
-          p {{ idx + 1 }}
-            | .
-            | {{ qa.question }}
-            | (
-            | {{ qa.score }}
-            | 分)
+        div(v-for="(qa, idx) in step1.qa", :key="idx", style={ 'margin-top': '8px' })
+          p(v-if="qa.type !== 'input'")
+           span {{ idx + 1 }}.&nbsp;
+           span {{ qa.question }}
+           span &nbsp;({{ qa.score }}分)
+          p(v-else)
+            span {{ idx + 1 }}.&nbsp;
+            span.inputType(v-for="(q, idx2) in qa.question", :key="idx2")
+              span(v-if="q") {{ q }}
+              el-input(v-else, v-model="qa.player[(idx2 - 1) / 2]")
+            span &nbsp;({{ qa.score }}分)
           div(style={ 'margin-left': '20px' })
             div(v-if="qa.type === 'radio'")
               el-radio-group(v-model="qa.player")
-                div(v-for="(a, idx) in qa.answer", :key="idx")
-                  el-radio(:label="idx", style={ color: '#eee', 'margin-top': '8px' }) {{ a }}
+                div(v-for="(a, idx3) in qa.answer", :key="idx3")
+                  el-radio(:label="idx3", style={ color: '#eee', 'margin-top': '8px' }) {{ a }}
             div(v-else-if="qa.type === 'checkbox'")
               el-checkbox-group(v-model="qa.player")
-                div(v-for="(a, idx) in qa.answer", :key="idx")
-                  el-checkbox(:label="idx", style={ color: '#eee', 'margin-top': '8px' }) {{ a }}
+                div(v-for="(a, idx3) in qa.answer", :key="idx3")
+                  el-checkbox(:label="idx3", style={ color: '#eee', 'margin-top': '8px' }) {{ a }}
             div(v-else-if="qa.type === 'switch'")
               el-radio-group(v-model="qa.player")
-                el-radio(:label="false", style={ color: '#eee', 'margin-top': '8px' }) 错
-                el-radio(:label="true", style={ color: '#eee', 'margin-top': '8px' }) 对
+                el-radio(:label="false", style={ color: '#eee', 'margin-top': '8px' }) {{ (qa.answer && qa.answer[0]) || '错误' }}
+                el-radio(:label="true", style={ color: '#eee', 'margin-top': '8px' }) {{ (qa.answer && qa.answer[1]) || '正确' }}
 
         div(style={ 'margin-top': '50px' }, align="center")
           el-button(:disabled="step1.wait >= 1", @click="clickStep1") {{ step1.btnName }}
@@ -171,44 +175,70 @@ export default {
       step1: {
         // 题目
         qa: [
-          {
+          { // 单选题
             type: 'radio',
-            question: '选择题 - 题目',
+            question: '单选题 - 合成一个工作台需要几个木板？',
             answer: [
-              '错误答案 01',
-              '正确答案 02',
-              '错误答案 03',
-              '错误答案 04'
+              '1',
+              '2',
+              '3',
+              '4'
             ],
             score: 5,
-            correct: 1,
+            correct: 3,
             player: -1
           },
-          {
+          { // 多选题
             type: 'checkbox',
-            question: '多选题 - 题目',
+            question: '多选题 - 哪些是合成信标需要的材料？',
             answer: [
-              '错误答案 01',
-              '正确答案 02',
-              '错误答案 03',
-              '正确答案 04'
+              '沙子',
+              '黑曜石',
+              '水桶',
+              '玻璃'
             ],
             score: 5,
             correct: [1, 3],
             player: []
           },
-          {
+          { // 判断题
             type: 'switch',
-            question: '判断题 - 题目',
+            question: '判断题 - 在服务器里可以随便熊',
             score: 5,
             correct: false,
             player: void 0
+          },
+          { // 判断题，自定义错误和正确的内容，第一个对应 false，第二个对应 true
+            type: 'switch',
+            question: '判断题 - 服务器里可以熊么？',
+            answer: ['不可以', '可以'],
+            score: 5,
+            correct: false,
+            player: void 0
+          },
+          { // TODO 填空题
+            type: 'input',
+            // 注意，最后一个空就在结尾时，即使后面什么都没有，也要写点什么，比如句号，甚至一个空字符串: ''
+            // 同理，第一个空在开头时，前面也要写点什么，哪怕是个空字符串
+            question: ['填空题 - 合成一个信标需要', '个黑曜石、', '个玻璃、以及一个', '。'],
+            score: 5,
+            correct: [
+              // 每个数组是一个空的答案，填里面任意一个都算对，判题的时候会自动去掉两变的空格，因此答案里也不要带两边空格
+              // 对于字母，会忽略大小写
+              ['3', '三'],
+              ['5', '五'],
+              ['下界之星', '星星', 'Nether Star', 'NetherStar', 'Star']
+            ],
+            player: []
           }
+
+          // 以上为示例，问题请参照上面的往后加
+
         ],
         // 所有题目总分数(自动计算)
         totalScore: -1,
         // 最低多少分可以过
-        minScore: 10,
+        minScore: 20,
         btnName: '答题完毕，下一步',
         wait: 0
       },
@@ -230,16 +260,19 @@ export default {
       },
       passwordType: 'password',
       capsTooltip: false,
-      loading: false,
-      showDialog: false,
-      redirect: undefined,
-      otherQuery: {}
+      loading: false
     }
   },
   mounted() {
     let totalScore = 0
-    for (let a = this.step1.qa.length - 1; a >= 0; a--) {
-      totalScore += this.step1.qa[a].score
+    for (let i = this.step1.qa.length - 1; i >= 0; i--) {
+      const qa = this.step1.qa[i]
+      totalScore += qa.score
+      if (qa.type === 'input') {
+        for (let j = qa.question.length - 1; j >= 1; j--) {
+          qa.question.splice(j, 0, void 0)
+        }
+      }
     }
     this.totalScore = totalScore
 
@@ -315,13 +348,24 @@ export default {
           case 'switch':
             if (e.correct === e.player) score += e.score
             break
+          case 'input':
+            let err = false
+            for (let i = e.correct.length - 1; i >= 0; i--) {
+              if (e.correct[i].indexOf(e.player[i]) < 0) {
+                err = true
+                break
+              }
+            }
+            if (!err) score += e.score
+
+            break
         }
       })
 
       if (score > this.step1.minScore) {
         this.step += 1
       } else {
-        notifyWarn('您答错的有点多呢，再努力试试吧~')
+        notifyWarn('您答错的有点多呢，再努力下试试吧~')
         let h = -1
         this.step1.wait = 120
         const code = () => {
@@ -355,35 +399,52 @@ $cursor: #fff;
   }
 }
 
-/* reset element-ui css */
-.login-container {
+.inputType {
   .el-input {
-    display: inline-block;
-    height: 47px;
-    width: 85%;
+    width: 100px;
 
     input {
-      background: transparent;
-      border: 0px;
-      -webkit-appearance: none;
+      background-color: #47586e;
+      border-top-width: 0px;
+      border-left-width: 0px;
+      border-right-width: 0px;
+      border-bottom-width: 1px;
       border-radius: 0px;
-      padding: 12px 5px 12px 15px;
-      color: $light_gray;
-      height: 47px;
-      caret-color: $cursor;
-
-      &:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px $bg inset !important;
-        -webkit-text-fill-color: $cursor !important;
-      }
     }
   }
+}
 
-  .el-form-item {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-    color: #454545;
+/* reset element-ui css */
+.login-container {
+  .login-form {
+    .el-input {
+      display: inline-block;
+      height: 47px;
+      width: 85%;
+
+      input {
+        background: transparent;
+        border: 0px;
+        -webkit-appearance: none;
+        border-radius: 0px;
+        padding: 12px 5px 12px 15px;
+        color: $light_gray;
+        height: 47px;
+        caret-color: $cursor;
+
+        &:-webkit-autofill {
+          box-shadow: 0 0 0px 1000px $bg inset !important;
+          -webkit-text-fill-color: $cursor !important;
+        }
+      }
+    }
+
+    .el-form-item {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      color: #454545;
+    }
   }
 }
 </style>
