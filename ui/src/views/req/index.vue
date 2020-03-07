@@ -12,7 +12,7 @@
 
       div.paddintop(v-if="step === 0", align="center")
         div
-          span 请下载并阅读规则哟
+          span 请下载并阅读规则哟(提取码 hvcn)
         div(style={ 'margin-top': '32px' })
           el-button(:disabled="step0.step >= 1 && step0.step < step0.waitTime", @click="clickStep0") {{ step0.btnName }}
 
@@ -216,7 +216,7 @@ export default {
             correct: false,
             player: void 0
           },
-          { // TODO 填空题
+          { // 填空题
             type: 'input',
             // 注意，最后一个空就在结尾时，即使后面什么都没有，也要写点什么，比如句号，甚至一个空字符串: ''
             // 同理，第一个空在开头时，前面也要写点什么，哪怕是个空字符串
@@ -311,7 +311,7 @@ export default {
     },
     clickStep0() {
       if (this.step0.step === 0) {
-        window.open('https://pan.baidu.com/s/12345678')
+        window.open('https://pan.baidu.com/s/1xS2xf6SsiOrK-ctMrQVHOA')
 
         let h = -1
         const code = () => {
