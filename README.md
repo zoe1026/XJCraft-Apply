@@ -19,16 +19,16 @@
 1. 安装`mysql`驱动
 
     ```shell script
-    pip3 install ???  # 咕咕咕 TODO
+    pip3 install pymysql
     ```
 2. 调整`db.py`开头的代码，改为`mysql`的配置，参考如下：
 
     ```python
-    import ???  # 咕咕咕 TODO
+    import pymysql
 
 
     df_pool = PooledDB(
-        ???,  # 咕咕咕 TODO
+        pymysql,
         mincached=1,
         maxcached=10,
         blocking=True,
