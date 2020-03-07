@@ -58,6 +58,12 @@ export const constantRoutes = [
     hidden: true
   },
   {
+    path: '/req/query/:playerName/:qq',
+    component: () => import('@/views/req/query'),
+    name: '查询申请进度',
+    hidden: true
+  },
+  {
     path: '/auth-redirect',
     component: () => import('@/views/login/auth-redirect'),
     hidden: true

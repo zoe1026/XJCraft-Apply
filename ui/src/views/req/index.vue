@@ -1,88 +1,132 @@
 <template lang="pug">
   .login-container
-    el-form(ref="reqForm", :model="reqForm", :rules="reqRules", class="login-form", autocomplete="off", label-position="left")
+    .app-container
       .title-container
         h3.title 注册申请
 
-      el-form-item(prop="playerName")
-        el-input(
-          ref="playerName",
-          v-model="reqForm.playerName",
-          placeholder="玩家名",
-          name="playerName",
-          type="text",
-          tabindex="1"
-        )
+      el-steps(style={ width: '520px', margin: '0 auto' }, :active="step", finish-status="success")
+        el-step(title="阅读规则")
+        el-step(title="小测验")
+        el-step(title="提交申请")
+        el-step(title="完成申请")
 
-      el-tooltip(v-model="capsTooltip", content="大写锁定已开启", placement="right", manual)
-        el-form-item(prop="password")
-          el-input(
-            :key="passwordType",
-            ref="password",
-            v-model="reqForm.password",
-            :type="passwordType",
-            placeholder="密码",
-            name="password",
-            tabindex="2",
-            autocomplete="on",
-            @keyup.native="checkCapslock",
-            @blur="capsTooltip = false",
-            @keyup.enter.native="handleLogin"
-          )
-          span.show-pwd(@click="showPwd")
-            svg-icon(:icon-class="passwordType === 'password' ? 'eye' : 'eye-open'")
+      div.paddintop(v-if="step === 0", align="center")
+        div
+          span 请下载并阅读规则哟
+        div(style={ 'margin-top': '32px' })
+          el-button(:disabled="step0.step >= 1 && step0.step < step0.waitTime", @click="clickStep0") {{ step0.btnName }}
 
-      el-form-item(prop="qq")
-        el-input(
-          ref="qq",
-          v-model="reqForm.qq",
-          placeholder="QQ 号",
-          name="qq",
-          type="text",
-          tabindex="3"
-        )
+      div.paddintop(v-else-if="step === 1", style={ width: '600px', margin: '0 auto', color: '#eee' })
+        div(v-for="(qa, idx) in step1.qa", :key="idx")
+          p {{ idx + 1 }}
+            | .
+            | {{ qa.question }}
+            | (
+            | {{ qa.score }}
+            | 分)
+          div(style={ 'margin-left': '20px' })
+            div(v-if="qa.type === 'radio'")
+              el-radio-group(v-model="qa.player")
+                div(v-for="(a, idx) in qa.answer", :key="idx")
+                  el-radio(:label="idx", style={ color: '#eee', 'margin-top': '8px' }) {{ a }}
+            div(v-else-if="qa.type === 'checkbox'")
+              el-checkbox-group(v-model="qa.player")
+                div(v-for="(a, idx) in qa.answer", :key="idx")
+                  el-checkbox(:label="idx", style={ color: '#eee', 'margin-top': '8px' }) {{ a }}
+            div(v-else-if="qa.type === 'switch'")
+              el-radio-group(v-model="qa.player")
+                el-radio(:label="false", style={ color: '#eee', 'margin-top': '8px' }) 错
+                el-radio(:label="true", style={ color: '#eee', 'margin-top': '8px' }) 对
 
-      el-form-item(prop="type")
-        el-select(
-          ref="type",
-          v-model="reqForm.type",
-          placeholder="申请类型",
-          name="type",
-          tabindex="4",
-          style="width: 100%"
-        )
-          el-option(key="", label="请选择申请类型", value="")
-          el-option(key="QQLevel", label="QQ 等级已达到太阳", value="QQLevel")
-          el-option(key="Invite", label="老玩家邀请", value="Invite")
-          el-option(key="PYJY", label="与 OP 协商", value="PYJY")
+        div(style={ 'margin-top': '50px' }, align="center")
+          el-button(:disabled="step1.wait >= 1", @click="clickStep1") {{ step1.btnName }}
 
-      el-form-item(v-if="reqForm.type === 'Invite'", prop="oldPlayerName")
-        el-input(
-          ref="oldPlayerName",
-          v-model="reqForm.oldPlayerName",
-          placeholder="邀请人(玩家名)",
-          name="oldPlayerName",
-          type="text",
-          tabindex="3"
-        )
+      div.paddintop(v-else-if="step === 2")
+        el-form.login-form(ref="reqForm", :model="reqForm", :rules="reqRules", autocomplete="off", label-position="left")
+          el-form-item(prop="playerName")
+            el-input(
+              ref="playerName",
+              v-model="reqForm.playerName",
+              placeholder="玩家名",
+              name="playerName",
+              type="text",
+              tabindex="1"
+            )
 
-      el-form-item(v-if="reqForm.type === 'PYJY'", prop="opName")
-        el-input(
-          ref="opName",
-          v-model="reqForm.opName",
-          placeholder="OP(玩家名)",
-          name="opName",
-          type="text",
-          tabindex="3"
-        )
+          el-tooltip(v-model="capsTooltip", content="大写锁定已开启", placement="right", manual)
+            el-form-item(prop="password")
+              el-input(
+                :key="passwordType",
+                ref="password",
+                v-model="reqForm.password",
+                :type="passwordType",
+                placeholder="密码",
+                name="password",
+                tabindex="2",
+                autocomplete="on",
+                @keyup.native="checkCapslock",
+                @blur="capsTooltip = false",
+                @keyup.enter.native="handleLogin"
+              )
+              span.show-pwd(@click="showPwd")
+                svg-icon(:icon-class="passwordType === 'password' ? 'eye' : 'eye-open'")
 
-      el-button(:loading="loading", type="primary", style="width:100%;margin-bottom:30px;", @click.native.prevent="handleReq") 提交申请
+          el-form-item(prop="qq")
+            el-input(
+              ref="qq",
+              v-model="reqForm.qq",
+              placeholder="QQ 号",
+              name="qq",
+              type="text",
+              tabindex="3"
+            )
+
+          el-form-item(prop="type")
+            el-select(
+              ref="type",
+              v-model="reqForm.type",
+              placeholder="申请类型",
+              name="type",
+              tabindex="4",
+              style="width: 100%"
+            )
+              el-option(key="", label="请选择申请类型", value="")
+              el-option(key="QQLevel", label="QQ 等级已达到太阳", value="QQLevel")
+              el-option(key="Invite", label="老玩家邀请", value="Invite")
+              el-option(key="PYJY", label="与 OP 协商", value="PYJY")
+
+          el-form-item(v-if="reqForm.type === 'Invite'", prop="oldPlayerName")
+            el-input(
+              ref="oldPlayerName",
+              v-model="reqForm.oldPlayerName",
+              placeholder="邀请人(玩家名)",
+              name="oldPlayerName",
+              type="text",
+              tabindex="3"
+            )
+
+          el-form-item(v-if="reqForm.type === 'PYJY'", prop="opName")
+            el-input(
+              ref="opName",
+              v-model="reqForm.opName",
+              placeholder="OP(玩家名)",
+              name="opName",
+              type="text",
+              tabindex="3"
+            )
+
+          el-button(:loading="loading", type="primary", style="width: 100%; margin-bottom: 30px;", @click.native.prevent="handleReq") 提交申请
+
+      div.paddintop(v-else-if="step === 3", align="center")
+        div 申请成功，请耐心等待 OP 处理
+        div(style={ 'margin-top': '32px' })
+          el-button(@click="clickStep3") 查询处理进度
 </template>
 
 <script>
 import { validUsername } from '@/utils/validate'
 import { req } from '@/api/req'
-import { notifySuccess } from '../../utils/notify'
+import { notifySuccess, notifyWarn } from '../../utils/notify'
 
 export default {
   name: 'Req',
@@ -118,6 +162,56 @@ export default {
       }
     }
     return {
+      step: this.$route.query.skip === 'xj' ? Number(this.$route.query.step) : 0,
+      step0: {
+        btnName: '点击下载规则',
+        step: 0,
+        waitTime: 301 // 设置为等待的秒数 + 1
+      },
+      step1: {
+        // 题目
+        qa: [
+          {
+            type: 'radio',
+            question: '选择题 - 题目',
+            answer: [
+              '错误答案 01',
+              '正确答案 02',
+              '错误答案 03',
+              '错误答案 04'
+            ],
+            score: 5,
+            correct: 1,
+            player: -1
+          },
+          {
+            type: 'checkbox',
+            question: '多选题 - 题目',
+            answer: [
+              '错误答案 01',
+              '正确答案 02',
+              '错误答案 03',
+              '正确答案 04'
+            ],
+            score: 5,
+            correct: [1, 3],
+            player: []
+          },
+          {
+            type: 'switch',
+            question: '判断题 - 题目',
+            score: 5,
+            correct: false,
+            player: void 0
+          }
+        ],
+        // 所有题目总分数(自动计算)
+        totalScore: -1,
+        // 最低多少分可以过
+        minScore: 10,
+        btnName: '答题完毕，下一步',
+        wait: 0
+      },
       reqForm: {
         playerName: '',
         password: '',
@@ -142,6 +236,15 @@ export default {
       otherQuery: {}
     }
   },
+  mounted() {
+    let totalScore = 0
+    for (let a = this.step1.qa.length - 1; a >= 0; a--) {
+      totalScore += this.step1.qa[a].score
+    }
+    this.totalScore = totalScore
+
+    console.log('总分: ' + totalScore)
+  },
   methods: {
     checkCapslock(e) {
       const { key } = e
@@ -162,8 +265,9 @@ export default {
         if (valid) {
           this.loading = true
           req(this.reqForm).then(response => {
-            notifySuccess(response.data || '申请成功，请耐心等待处理，处理结果将在群内通过 QQ 通知，重新输入同样的信息可查询处理进度', { timeout: 15000 })
+            notifySuccess('申请成功')
             this.loading = false
+            this.step += 1
           }).catch(() => {
             this.loading = false
           })
@@ -171,6 +275,70 @@ export default {
           return false
         }
       })
+    },
+    clickStep0() {
+      if (this.step0.step === 0) {
+        window.open('https://pan.baidu.com/s/12345678')
+
+        let h = -1
+        const code = () => {
+          this.step0.step += 1
+          if (this.step0.step === this.step0.waitTime) {
+            this.step0.btnName = '已阅读，下一步'
+            clearInterval(h)
+          } else {
+            this.step0.btnName = '已阅读，下一步(' + (this.step0.waitTime - this.step0.step) + ')'
+          }
+        }
+        h = setInterval(code, 1000)
+        code()
+      } else if (this.step0.step === this.step0.waitTime) {
+        this.step += 1
+      }
+    },
+    clickStep1() {
+      let score = 0
+      this.step1.qa.forEach(e => {
+        switch (e.type) {
+          case 'radio':
+            if (e.correct === e.player) score += e.score
+            break
+          case 'checkbox':
+            if (e.correct.length === e.player.length) {
+              if (!e.correct.find(a => e.player.indexOf(a) < 0)) {
+                score += e.score
+              }
+            }
+
+            score += e.score
+            break
+          case 'switch':
+            if (e.correct === e.player) score += e.score
+            break
+        }
+      })
+
+      if (score > this.step1.minScore) {
+        this.step += 1
+      } else {
+        notifyWarn('您答错的有点多呢，再努力试试吧~')
+        let h = -1
+        this.step1.wait = 120
+        const code = () => {
+          this.step1.wait -= 1
+          if (this.step1.wait === 0) {
+            this.step1.btnName = '答题完毕，下一步'
+            clearInterval(h)
+          } else {
+            this.step1.btnName = '答题完毕，下一步(' + (this.step1.wait) + ')'
+          }
+        }
+        h = setInterval(code, 1000)
+        code()
+      }
+    },
+    clickStep3() {
+      this.$router.push({ name: '查询申请进度', params: { playerName: this.reqForm.playerName, qq: this.reqForm.qq }})
     }
   }
 }
@@ -221,7 +389,7 @@ $cursor: #fff;
 </style>
 
 <style lang="scss" scoped>
-$bg:#2d3a4b;
+$bg:#47586e;
 $dark_gray:#889aa4;
 $light_gray:#eee;
 
@@ -231,11 +399,14 @@ $light_gray:#eee;
   background-color: $bg;
   overflow: hidden;
 
+  .paddintop {
+    padding: 100px 35px 0;
+  }
+
   .login-form {
     position: relative;
     width: 520px;
     max-width: 100%;
-    padding: 160px 35px 0;
     margin: 0 auto;
     overflow: hidden;
   }
@@ -280,18 +451,6 @@ $light_gray:#eee;
     color: $dark_gray;
     cursor: pointer;
     user-select: none;
-  }
-
-  .thirdparty-button {
-    position: absolute;
-    right: 0;
-    bottom: 6px;
-  }
-
-  @media only screen and (max-width: 470px) {
-    .thirdparty-button {
-      display: none;
-    }
   }
 }
 </style>
