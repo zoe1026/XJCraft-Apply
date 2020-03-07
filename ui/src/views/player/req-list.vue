@@ -61,7 +61,7 @@ const statuses = {
 }
 
 export default {
-  name: 'Demo',
+  name: 'ReqList',
   components: { Pagination },
   filters: {
     typeFilter(val) {

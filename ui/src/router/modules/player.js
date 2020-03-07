@@ -6,7 +6,8 @@ const playerRouter = {
   redirect: 'noRedirect',
   name: 'Player',
   meta: {
-    title: '玩家申请',
+    title: '玩家',
+    icon: 'peoples',
     roles: ['OP']
   },
   children: [
@@ -16,6 +17,14 @@ const playerRouter = {
       name: '玩家申请列表',
       meta: {
         title: '玩家申请列表'
+      }
+    },
+    {
+      path: 'ip-black-list',
+      component: () => import('@/views/player/ip-black-list'),
+      name: 'IP 黑名单',
+      meta: {
+        title: 'IP 黑名单'
       }
     }
   ]
